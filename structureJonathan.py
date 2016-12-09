@@ -1,4 +1,6 @@
 import numpy as np
+import functools, operator
+from math import log
 
 
 
@@ -50,7 +52,7 @@ def mcmc_no_admixture(individuals, snps, K):
 		loci = snps[idx]
 		for locus in range(0,num_loci,2):
 
-			# grab allele counts
+			# grab alleles at this locus
 			allele1 = int(loci[locus])
 			allele2 = int(loci[locus+1])
 
@@ -58,13 +60,13 @@ def mcmc_no_admixture(individuals, snps, K):
 			#print "allele2: {0}".format(allele2)
 			
 
-			# don't count negative counts
-			if (allele1 >=0):
-				n[k-1][locus][0] = n[k-1][locus][0] + allele1
+			# count alleles 
+			for allele in [allele1, allele2]:
+				if (allele == 1):
+					n[k-1][locus][0] += 1
+				elif (allele == 2):
+					n[k-1][locus][1] += 1
 
-			# second allele
-			if (allele2 >=0):
-				n[k-1][locus][1] += allele2
 
 	# fill out matrix p , which stores pkl0, where pkl1 = 1 - pkl0
 	p = np.zeros((K,num_loci))
@@ -73,10 +75,18 @@ def mcmc_no_admixture(individuals, snps, K):
 		for l in range(0,num_loci):
 
 			# sample from dirichlet distribution, return the probablility of allele1
-			# store 
-			p[k][l] = np.random.dirichlet([1 + n[k][l][0], 1 + n[k][l][1] ])[0]
+			# store as logs
+			p[k][l] = log(np.random.dirichlet([1 + n[k][l][0], 1 + n[k][l][1] ])[0])
+
+	
+	#--------Step 2----------- #
+
+
 
 	print p
+
+def pHelper(p, k):
+	return reduce(operator.add, p[k])
 
 
 
