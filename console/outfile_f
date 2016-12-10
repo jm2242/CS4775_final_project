@@ -1,0 +1,85 @@
+
+
+----------------------------------------------------
+STRUCTURE by Pritchard, Stephens and Donnelly (2000)
+     and Falush, Stephens and Pritchard (2003)
+       Code by Pritchard, Falush and Hubisz
+             Version 2.3.4 (Jul 2012)
+----------------------------------------------------
+
+
+
+Command line arguments:   ./structure -i jonathanTest 
+Input File:    jonathanTest
+
+Run parameters:
+   3 individuals
+   3 loci
+   2 populations assumed
+   10000 Burn-in period
+   20000 Reps
+NO ADMIXTURE model assumed
+
+
+--------------------------------------------
+Overall proportion of membership of the
+sample in each of the 2 clusters
+
+Inferred Clusters
+  1      2    
+0.503  0.497  
+
+--------------------------------------------
+
+Allele-freq. divergence among pops (Net nucleotide distance),
+computed using point estimates of P.
+
+      1       2      
+ 1      -    0.0000  
+ 2   0.0000     -    
+
+Average distances (expected heterozygosity) between individuals in same cluster:
+cluster  1  : 0.4969 
+cluster  2  : 0.4976 
+
+--------------------------------------------
+Estimated Ln Prob of Data   = -14.3
+Mean value of ln likelihood = -13.1
+Variance of ln likelihood   = 2.3
+
+Mean value of Fst_1         = 0.0370
+Mean value of Fst_2         = 0.0373
+
+
+Inferred ancestry of individuals:
+        Label (%Miss) :  Inferred clusters
+  1  NA19916    (0)   :  0.506 0.494 
+  2  NA19915    (0)   :  0.511 0.489 
+  3  NA19914    (0)   :  0.493 0.507 
+
+
+Estimated Allele Frequencies in each cluster
+First column gives estimated ancestral frequencies
+
+
+Locus 1 : 
+2 alleles
+0.0% missing data
+   1   (0.461) 0.460 0.463 
+   2   (0.539) 0.540 0.537 
+
+Locus 2 : 
+2 alleles
+0.0% missing data
+   1   (0.511) 0.519 0.512 
+   2   (0.489) 0.481 0.488 
+
+Locus 3 : 
+2 alleles
+0.0% missing data
+   2   (0.538) 0.552 0.546 
+   1   (0.462) 0.448 0.454 
+
+Values of parameters used in structure:
+DATAFILE=jonathanTest,	OUTFILE=outfile,	NUMINDS=3,	NUMLOCI=3,	MISSING=-9,	LABEL=1,	POPDATA=0,	POPFLAG=0,	PHENOTYPE=0,	EXTRACOLS=3,	MAXPOPS=2,	BURNIN=10000,	NUMREPS=20000,	USEPOPINFO=0,	INFERALPHA=1,	INFERLAMBDA=0,	POPSPECIFICLAMBDA=0,	POPALPHAS=0,	COMPUTEPROB=1,	NOADMIX=1,	ADMBURNIN=500,	UPDATEFREQ=100,	PRINTLIKES=0,	INTERMEDSAVE=0,	PRINTKLD=0,	PRINTNET=1,	PRINTLAMBDA=1,	ANCESTDIST=0,	NUMBOXES=1000,	ANCESTPINT=0.90000,	GENSBACK=2,	MIGRPRIOR=0.01000,	PRINTQHAT=0,	PRINTQSUM=1,	ALPHA=1.0000,	FREQSCORR=1,	FPRIORMEAN=0.0100,	FPRIORSD=0.0500,	ONEFST=0,	LAMBDA=1.0000,	UNIFPRIORALPHA=1,	ALPHAMAX=10.0000,	ALPHAPRIORA=1.0000,	ALPHAPRIORB=2.0000,	ALPHAPROPSD=0.0250,	STARTATPOPINFO=0,	RANDOMIZE=1,	LINKAGE=0,	METROFREQ=10,	REPORTHITRATE=0,	MARKOVPHASE=0,	PHASED=0,	PLOIDY=2,	PHASEINFO=0	LOCPRIOR=0, 	LOCPRIORINIT=1.000000, 	LOCDATA=0, 	LOCISPOP=0, 	LOCPRIORSTEP=0.100000, 	MAXLOCPRIOR=20.000000, 	SEED=1481336594,	
+[STRAT parameters]:    NUMSIMSTATS=1000,	PHENOTYPECOL=-9,	POOLFREQ=10,	LOCUSxONLY=0,	EMERROR=0.00100,	MISSINGPHENO=-9,	
