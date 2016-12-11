@@ -26,8 +26,8 @@ def sumLogProb(a, b):
 
 
 # helper function for computing the probability 
-def pHelper(p, k):
-	return reduce(operator.add, p[k])
+# def pHelper(p, k):
+# 	return reduce(operator.add, p[k])
 
 
 
@@ -45,19 +45,22 @@ def read_file(fileName):
 
 		# convert all snps to integers
 		snps = np.array(snps)
+		number_individuals = len(individuals)
+		print "number of individuals: {0}".format(number_individuals)
+		print "number of loci: {0}".format(len(snps[0])/2)
+
 	return individuals, snps
 
 
 def mcmc_no_admixture(individuals, snps, K):
+	
 	number_individuals = len(individuals)
-	print "number of individuals: {0}".format(number_individuals)
-
 
 	num_alleles = 2
 
 	# get the number of loci, should be an even number
 	num_loci = len(snps[0]) / 2
-	print "number of loci: {0}".format(num_loci)
+	
 
 	# initialize z0 for all individuals from uniform distribution
 	z = np.array([np.random.randint(0,K) for _ in range(number_individuals)])
@@ -71,13 +74,13 @@ def mcmc_no_admixture(individuals, snps, K):
 
 	'''
 	#------ itterate m times  -------- #
-	for m in range(10):
-		print "itteration {0}".format(m)
+	for m in range(20):
+		# print "itteration {0}".format(m)
 
 		#--------Step 1----------- #
-		print "Run Step 1"
+		# print "Run Step 1"
 		# set up nklj, a 3D matrix of counts that is indexed by k-> l-> j
-		n = np.ones((K,num_loci,num_alleles))
+		n = np.zeros((K,num_loci,num_alleles))
 		# loop through all individuals
 		for idx, individual in enumerate(individuals):
 
@@ -89,6 +92,7 @@ def mcmc_no_admixture(individuals, snps, K):
 			# loci within snps for each individuals also allign by index
 
 			# just the loci for the current individual
+			# loci stores the diploid SNPS for each locus, so len(loci) should be 2*num_loci
 			loci = snps[idx]
 
 			# itterate over each locus
@@ -103,14 +107,14 @@ def mcmc_no_admixture(individuals, snps, K):
 				# count alleles 
 				for chromosome in [chromosome1, chromosome2]:
 					if (chromosome == ALLELE_1):
-						n[k-1][locus][0] += 1
+						n[k][locus][0] += 1
 					elif (chromosome == ALLELE_2):
-						n[k-1][locus][1] += 1
+						n[k][locus][1] += 1
 
 
 		# fill out matrix p , which stores pkl0, where pkl1 = 1 - pkl0
 		# use pseudocounts, minimum count is 1
-		p = np.ones((K,num_loci))
+		p = np.zeros((K,num_loci))
 		
 		for k in range(0,K):
 			for l in range(0,num_loci):
@@ -119,9 +123,9 @@ def mcmc_no_admixture(individuals, snps, K):
 				# store as logs
 				p[k][l] = log(np.random.dirichlet([1 + n[k][l][0], 1 + n[k][l][1] ])[0])
 
-		print "population distribution: {0}".format(z)
-		print "matrix: n {0}".format(n)
-		print "matrix: p  {0}".format(p)
+		# print "population distribution: {0}".format(z)
+		# print "matrix: n {0}".format(n)
+		# print "p log likelihood (wrong)  {0}".format(p.sum())
 		#--------Step 2----------- #
 		'''
 		Description of Step 2
@@ -130,8 +134,8 @@ def mcmc_no_admixture(individuals, snps, K):
 		 factor. an individual will be sampled from a population k by a weighted
 		 vector [a(k1}/norm, a(k2)/norm, a(k3)/norm] where a is Pr(x(i)|P, z(i)=k) 
 		'''
-		print "Run Step 2"
-
+		# print "Run Step 2"
+		individuals_changed = 0
 		# itterate over each individual
 		for idx, individual in enumerate(individuals):
 
@@ -144,16 +148,21 @@ def mcmc_no_admixture(individuals, snps, K):
 
 			# normalize
 			kDistribution = map(exp, kDistribution - sum_k_dist)
-			print "after normalizing: {0}".format(kDistribution)
+			#print "after normalizing: {0}".format(kDistribution)
 
 
 
 			# sample from this weighted distribution, assign new k to this individual:
 			z_new = np.random.choice(K, 1,p=kDistribution)[0]
 			if z[idx] != z_new:
-				print "individual {0} changed from {1} to {2}".format(idx, z[idx], z_new)
+				#print "individual {0} changed from {1} to {2}".format(idx, z[idx], z_new)
+				individuals_changed += 1
 				z[idx] = z_new
-
+		# print "number of individuals reassigned in itteration {0}: {1}".format(m, individuals_changed)
+	print "k=0 ind: {0}".format(np.count_nonzero(z == 0))
+	print "k=1 ind: {0}".format(np.count_nonzero(z == 1))
+	print "k=2 ind: {0}".format(np.count_nonzero(z == 2))
+	print "final ancestry assignment: {0}".format(z)
 
 
 
@@ -217,8 +226,9 @@ def main():
 	ids, snps = read_file("hapmap3.ped")
 	#ids, snps = read_file("smallTest.ped")
 
-
-	mcmc_no_admixture(ids,snps,K=3)
+	for run in range(0,30):
+		print "run number {0}".format(run)
+		mcmc_no_admixture(ids,snps,K=3)
 
 
 

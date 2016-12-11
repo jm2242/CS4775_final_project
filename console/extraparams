@@ -10,7 +10,7 @@ SPECIFIED IN mainparams.
 
 PROGRAM OPTIONS
 
-#define NOADMIX     1 // (B) Use no admixture model (0=admixture model, 1=no-admix)
+#define NOADMIX     0 // (B) Use no admixture model (0=admixture model, 1=no-admix)
 #define LINKAGE     0 // (B) Use the linkage model model 
 #define USEPOPINFO  0 // (B) Use prior population information to pre-assign individuals
                              to clusters
@@ -107,7 +107,7 @@ MISCELLANEOUS
 #define COMPUTEPROB 1     // (B) Estimate the probability of the Data under 
                              the model.  This is used when choosing the 
                              best number of subpopulations.
-#define ADMBURNIN  500    // (int) [only relevant for linkage model]: 
+#define ADMBURNIN  0    // (int) [only relevant for linkage model]: 
                              Initial period of burnin with admixture model (see Readme)
 #define ALPHAPROPSD 0.025 // (d) SD of proposal for updating alpha
 #define STARTATPOPINFO 0  // Use given populations as the initial condition 

@@ -12,7 +12,7 @@ FILE extraparams.
 
 Basic Program Parameters
 
-#define MAXPOPS    2      // (int) number of populations assumed 
+#define MAXPOPS    3      // (int) number of populations assumed 
 #define BURNIN    10000   // (int) length of burnin period 
 #define NUMREPS   20000   // (int) number of MCMC reps after burnin 
 
