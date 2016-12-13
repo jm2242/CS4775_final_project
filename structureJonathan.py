@@ -7,6 +7,7 @@ import sys
 # ------- CONSTANTS ----------#
 ALLELE_1 = 1
 ALLELE_2 = 2
+NUM_ALLELES = 2
 
 
 
@@ -25,14 +26,17 @@ def sumLogProb(a, b):
 
 
 
-# helper function for computing the probability 
-# def pHelper(p, k):
-# 	return reduce(operator.add, p[k])
 
 
+'''
+read in the snp data
+singleLine is a parameter to read in SNP data that's formated by 1 individual / line
+Hapmap3 data is in the following format:
+1 individual per line
+Locusi_1 Locusi_2 ....  
 
-# read in the snp data
-# singleLine is a parameter to read in SNP data that's formated by 1 individual / line
+
+'''
 def read_file(fileName, singleLine=True):
 	individuals = []
 	snps = []
@@ -45,10 +49,10 @@ def read_file(fileName, singleLine=True):
 			snps.append(map(int,splitLine[6:]))
 
 		# convert all snps to integers
-		snps = np.array(snps)
+		#snps = np.array(snps)
 		number_individuals = len(individuals)
-		print "number of individuals: {0}".format(number_individuals)
-		print "number of loci: {0}".format(len(snps[0])/2)
+		print "number of individuals read: {0}".format(number_individuals)
+		print "number of loci read: {0}".format(len(snps[0])/2)
 
 	return individuals, snps
 
@@ -63,36 +67,55 @@ def write_file(data):
 
 
 
-
+'''
+STRUCTURE no Admixture
+requires a list of individuals, where each element of individuals is a 2 element list 
+requires a list of snps, where each element is a list of allele copies of length number_loci*2
+(2 allele copies per locus)
+'''
 def mcmc_no_admixture(individuals, snps, K):
 	
 	number_individuals = len(individuals)
 
-	num_alleles = 2
 
 	# get the number of loci, should be an even number
 	num_loci = len(snps[0]) / 2
-	
+
+	print "number of individuals for alg: {0}".format(number_individuals)
+	print "number of loci for alg: {0}".format(num_loci)
 
 	# initialize z0 for all individuals from uniform distribution
-	z = np.array([np.random.randint(0,K) for _ in range(number_individuals)])
+	z = np.array([np.random.randint(0,K) for _ in xrange(number_individuals)])
 	#z = [2, 1, 2, 1, 2, 2]
 	
 	'''
 	Algorithm overview
-
-
-	Terminate when likelyhood of data is constant
+	In no admixture case, assume all individuals come from 1 population 
+	Initialize z with uniform distirbution(K)
+	Step 1: Generate matrix nklj
+	Step 2: 
 
 	'''
+
+	'''
+	Data structure overview (no admixture)
+	List indeces map to individuals
+	z -> list of individuals' k assignment; 1 k per individual. length(z) = # ind.
+	snps[i][a] -> a 2D list indexed by individual and allele copy
+		length(snps) = number of individuals
+		length(snps[i]) for all = # loci*2, since 2 allele copies per locus
+	'''
+
+
+
 	#------ itterate m times  -------- #
-	for m in range(20):
+	for m in xrange(20):
 		# print "itteration {0}".format(m)
 
 		#--------Step 1----------- #
 		# print "Run Step 1"
 		# set up nklj, a 3D matrix of counts that is indexed by k-> l-> j
-		n = np.zeros((K,num_loci,num_alleles))
+		n = np.zeros((K,num_loci,NUM_ALLELES))
 		# loop through all individuals
 		for idx, individual in enumerate(individuals):
 
@@ -100,15 +123,14 @@ def mcmc_no_admixture(individuals, snps, K):
 			# this particular individual belongs to population k
 			k = z[idx]
 
-			# itterate over each locus 
+
 			# loci within snps for each individuals also allign by index
 
 			# just the loci for the current individual
-			# loci stores the diploid SNPS for each locus, so len(loci) should be 2*num_loci
 			loci = snps[idx]
 
 			# itterate over each locus
-			for locus in range(0,num_loci):
+			for locus in xrange(0,num_loci):
 
 				# grab chromosomes at this locus
 				chromosome1, chromosome2 = int(loci[2*locus]), int(loci[2*locus+1])
@@ -128,8 +150,8 @@ def mcmc_no_admixture(individuals, snps, K):
 		# use pseudocounts, minimum count is 1
 		p = np.zeros((K,num_loci))
 		
-		for k in range(0,K):
-			for l in range(0,num_loci):
+		for k in xrange(0,K):
+			for l in xrange(0,num_loci):
 
 				# sample from dirichlet distribution, return the probablility of allele1
 				# store as logs
@@ -137,7 +159,7 @@ def mcmc_no_admixture(individuals, snps, K):
 
 		# print "population distribution: {0}".format(z)
 		# print "matrix: n {0}".format(n)
-		# print "p log likelihood (wrong)  {0}".format(p.sum())
+		print "p log likelihood (simpl)  {0}".format(p.sum())
 		#--------Step 2----------- #
 		'''
 		Description of Step 2
@@ -185,15 +207,6 @@ def mcmc_no_admixture(individuals, snps, K):
 # using log probabilities
 def alleleHelper(pLocus, allele1, allele2):
 
-	# terms = [0,0]
-	# for idx, allele in enumerate([allelle1, allele2]):
-	# 	if allele == 1:
-	# 		terms[idx] = pLocus
-	# 	elif allele == 2:
-	# 		terms[idx] = log(1 - exp(pLocus))
-	# 	else:
-	# 		terms[idx] = 0
-	# return sum(terms)
 	if allele1 == 1:
 		term1 = pLocus
 	elif allele1 == 2:
@@ -227,92 +240,165 @@ def probHelper(loci, num_loci, p):
 	return kDist
 
 
-def mcmc_admixture(ids, snps, K=3):
+def mcmc_admixture(individuals, snps, K=3):
 	
 	# get the number of loci, should be an even number
 	num_loci = len(snps[0]) / 2
 
 	# get number of individuals
-	number_individuals = len(ids)
+	number_individuals = len(individuals)
+
+	print "number of individuals for alg: {0}".format(number_individuals)
+	print "number of loci for alg: {0}".format(num_loci)
 
 	# each observed allele copy xl(i,a) originated in some unkown population zl(i,a)
 	# initialize z0 for all alleles for all individuals from uniform distribution
-	z = np.array([ [np.random.randint(0,K) for _ in range(num_loci * 2)] for _ in range(number_individuals)])
+	z = np.array([ [np.random.randint(0,K) for _ in xrange(num_loci * 2)] for _ in xrange(number_individuals)])
 	
 
 	# itterate m times
-	for m in range(20):
+	for m in xrange(300):
+		print "running itteration {0}".format(m)
 
 		#--------Step 1----------- #
 		# print "Run Step 1"
 		# set up nklj, a 3D matrix of counts that is indexed by k-> l-> j
-		n = np.zeros((K,num_loci,num_alleles))
-		# build nklj matrix
+		# pseudocounts for n
+		n = np.ones((K,num_loci,NUM_ALLELES))
+
+		# m -> number of allele copies in indvidual i taht orginated in population k
+		m = np.zeros((number_individuals, K))
+
+		# q -> proportion of admixture
+		q = np.zeros((number_individuals, K))
+
 		# itterate over each individual
-			for idx, individual in enumerate(individuals):
+		for idx, individual in enumerate(individuals):
 
-				# itterate over each locus 
-				# loci within snps for each individuals also allign by index
+			# itterate over each locus 
+			# loci within snps for each individuals also allign by index
 
-				# just the loci for the current individual
-				# loci stores the diploid SNPS for each locus, so len(loci) should be 2*num_loci
-				loci = snps[idx]
+			# just the loci for the current individual
+			# loci stores the diploid SNPS for each locus, so len(loci) should be 2*num_loci
+			loci = snps[idx]
 
-				# itterate over each locus
-				for locus in range(0,num_loci):
+			# itterate over each locus
+			for locus in xrange(0,num_loci):
 
-					# grab chromosomes at this locus
-					chromosome1, chromosome2 = int(loci[2*locus]), int(loci[2*locus+1])
+				# grab chromosomes at this locus
+				chromosome1, chromosome2 = int(loci[2*locus]), int(loci[2*locus+1])
 
-					# grab the populations of origin of the allele copies (of chromosome1 and chromosome2)
-					k1, k2 = z[idx][2*locus], z[idx][2*locus+1]
+				# grab the populations of origin of the allele copies (of chromosome1 and chromosome2)
+				k1, k2 = z[idx][2*locus], z[idx][2*locus+1]
 
-					#print "allele1: {0}".format(allele1)
-					#print "allele2: {0}".format(allele2)
-					
-					# count allele copy 1 
-					if (chromosome1 == ALLELE_1):
-						n[k1][locus][0] += 1
-					elif (chromosome1 == ALLELE_2):
-						n[k1][locus][1] += 1
+				#print "allele1: {0}".format(allele1)
+				#print "allele2: {0}".format(allele2)
+				
+				# count allele copy 1 
+				if (chromosome1 == ALLELE_1):
+					n[k1][locus][0] += 1
+				elif (chromosome1 == ALLELE_2):
+					n[k1][locus][1] += 1
 
-					# count allele copy 2
-					if (chromosome2 == ALLELE_1):
-						n[k2][locus][0] += 1
-					elif (chromosome2 == ALLELE_2):
-						n[k2][locus][1] += 1
+				# count allele copy 2
+				if (chromosome2 == ALLELE_1):
+					n[k2][locus][0] += 1
+				elif (chromosome2 == ALLELE_2):
+					n[k2][locus][1] += 1
+
+				# keep track of allele copies seen
+				m[idx][k1] += 1
+				m[idx][k2] += 1
+
+
+		#------ sample p-----#
+		# fill out matrix p , which stores pkl0, where pkl1 = 1 - pkl0
+		# use pseudocounts, minimum count is 1 (should I do this?)
+		p = np.zeros((K,num_loci))
+		
+		for k in xrange(0,K):
+			for l in xrange(0,num_loci):
+
+				# sample from dirichlet distribution, return the probablility of allele1
+				# store as logs
+				p[k][l] = log(np.random.dirichlet([1 + n[k][l][0], 1 + n[k][l][1] ])[0])
+
+
+
+		#-----sample q------#
+		# for each individual, update q
+		for i in xrange(number_individuals):
+			# sample from Dirichlet distribution using m
+			# alpha = 1
+			q[i] = np.random.dirichlet([1 + m[i][0], 1 + m[i][1], 1 + m[i][2] ])
+
+
 		#--------END Step 1----------- #
 
 		#--------BEGIN Step 2----------- #
+		# need to choose a k for each allele copy in each locus, for every individual 
+
+		# simulate zl(i,a)
+
+		# itterate over all z entries
+		for i in xrange(number_individuals):
+			for locus in xrange(num_loci):
+				for a in xrange(locus*2,locus*2+1):
+
+					# generate distribution
+					dist = np.array([ log(q[i][k]) + single_allele_helper(p[k][locus], snps[i][a]) for k in xrange(0,K)])
+					sum_dist = reduce(sumLogProb, dist)
+			
+					# normalize
+					dist = map(exp, dist - sum_dist)
+
+					# sample zl(i,a) from this distribution
+					# assign new k to this allele copy
+					z[i][a] = np.random.choice(K, 1,p=dist)[0]
+
+		# --- Stats for each run --- #
+		print "p log likelihood (simpl)  {0}".format(p.sum())
+	print "admix fractions after {0} runs : {1}".format(m,q)
+
+
+
+# map genotype observed at allele to correct probability
+# p only stores probability of ALLELE_1
+# requires a log probability and an allele of value either ALLELE_1, ALLELE_2, or 0, indicating missing
+def single_allele_helper(logProb, allele):
+	if allele == ALLELE_1:
+		return logProb
+	elif allele == ALLELE_2:
+		return log(1 - exp(logProb))
+
+	# missing data case
+	# not 100% sure what to do here
+	else:
+		return 0
 
 
 
 
 
 
-
-
-
-
-# def logLikelyHood(p):
-# 	accum = 0 
-# 	for k in 
 
 
 
 def main():
 	# read in data
 	ids, snps = read_file("hapmap3.ped")
+	ids = np.array(ids)
+	snps = np.array(snps)
 	#ids, snps = read_file("thrush", False)
 	#ids, snps = read_file("smallTest.ped")
 
 	# run no_admixture many times
-	# for run in range(0,30):
+	# for run in xrange(0,30):
 	# 	print "run number {0}".format(run)
 	# 	mcmc_no_admixture(ids,snps,K=3)
 
 
-	mcmc_admixture(ids,snps)
+	mcmc_admixture(ids[:50],snps[:50,:500])
 
 
 
