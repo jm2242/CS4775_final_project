@@ -167,7 +167,7 @@ def mcmc_no_admixture(individuals, snps, K):
 		#--------BEGIN Step 1----------- #
 		# print "Run Step 1"
 		# set up nklj, a 3D matrix of counts that is indexed by k-> l-> j
-		n = np.zeros((K,num_loci,NUM_ALLELES))
+		n = np.ones((K,num_loci,NUM_ALLELES))
 
 		# loop through all individuals
 		for idx, individual in enumerate(individuals):
@@ -288,15 +288,15 @@ def mcmc_admixture(individuals, snps, K=3):
 	z = np.array([ [np.random.randint(0,K) for _ in xrange(num_loci * 2)] for _ in xrange(number_individuals)])
 	
 
-	# itterate m times
-	for m in xrange(300):
-		print "running itteration {0}".format(m)
+	# itterate itter times
+	for itter in xrange(5000):
+		print "running itteration {0}".format(itter)
 
 		#--------Step 1----------- #
 		# print "Run Step 1"
 		# set up nklj, a 3D matrix of counts that is indexed by k-> l-> j
 		# pseudocounts for n
-		n = np.zeros((K,num_loci,NUM_ALLELES))
+		n = np.ones((K,num_loci,NUM_ALLELES))
 
 		# m -> number of allele copies in indvidual i that orginated in population k
 		m = np.zeros((number_individuals, K))
@@ -364,7 +364,6 @@ def mcmc_admixture(individuals, snps, K=3):
 			# alpha = 1
 			q[i] = np.random.dirichlet([1 + m[i][0], 1 + m[i][1], 1 + m[i][2] ])
 
-
 		#--------END Step 1----------- #
 
 		#--------BEGIN Step 2----------- #
@@ -390,7 +389,9 @@ def mcmc_admixture(individuals, snps, K=3):
 
 		# --- Stats for each run --- #
 		print "p log likelihood (simpl)  {0}".format(p.sum())
-	print "admix fractions after {0} runs : {1}".format(m,q)
+		if (itter%20 == 0):
+			print "admix fractions after {0} runs : {1}".format(itter,q)
+	print "admix fractions after {0} runs : {1}".format(itter,q)
 
 
 
@@ -430,7 +431,7 @@ def main():
 	#mcmc_no_admixture(ids,snps,K=3)
 
 
-	mcmc_admixture(ids[:50],snps[:50,:5000])
+	mcmc_admixture(ids,snps)
 
 
 
