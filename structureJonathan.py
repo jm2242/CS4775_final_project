@@ -95,7 +95,7 @@ compute Pr(x(i)|P, z(i)=k) for all k
 requires a list loci of all of the loci for an individual i
 '''
 def probHelper(loci, num_loci, p):
-	
+
 	kDist = []
 	for pk in p:
 		
@@ -161,7 +161,7 @@ def mcmc_no_admixture(individuals, snps, K):
 
 
 	#------ itterate m times  -------- #
-	for m in xrange(20):
+	for m in xrange(10):
 		# print "itteration {0}".format(m)
 
 		#--------BEGIN Step 1----------- #
@@ -200,7 +200,6 @@ def mcmc_no_admixture(individuals, snps, K):
 
 
 		# fill out matrix p , which stores pkl0, where pkl1 = 1 - pkl0
-		# use pseudocounts, minimum count is 1
 		p = np.zeros((K,num_loci))
 		
 		for k in xrange(0,K):
@@ -212,7 +211,7 @@ def mcmc_no_admixture(individuals, snps, K):
 
 		# print "population distribution: {0}".format(z)
 		# print "matrix: n {0}".format(n)
-		print "p log likelihood (simpl)  {0}".format(p.sum())
+		print "itter: ({0}) p log likelihood (simpl)  {1}".format(m, p.sum())
 		#--------END Step 1----------- #
 
 		#--------BEGIN Step 2----------- #
@@ -225,6 +224,7 @@ def mcmc_no_admixture(individuals, snps, K):
 		'''
 		# print "Run Step 2"
 		individuals_changed = 0
+
 		# itterate over each individual
 		for idx, individual in enumerate(individuals):
 
@@ -247,17 +247,30 @@ def mcmc_no_admixture(individuals, snps, K):
 				#print "individual {0} changed from {1} to {2}".format(idx, z[idx], z_new)
 				individuals_changed += 1
 				z[idx] = z_new
+
 		# print "number of individuals reassigned in itteration {0}: {1}".format(m, individuals_changed)
 	print "k=0 ind: {0}".format(np.count_nonzero(z == 0))
 	print "k=1 ind: {0}".format(np.count_nonzero(z == 1))
 	print "k=2 ind: {0}".format(np.count_nonzero(z == 2))
-	print "final ancestry assignment: {0}".format(z)
+	#print "final ancestry assignment: {0}".format(z)
+	for kAssignment in z:
+		if kAssignment == 0:
+			print "1 0 0"
+		elif kAssignment == 1:
+			print "0 1 0"
+		else:
+			print "0 0 1"
 
 
 
 
 
 
+
+
+
+
+# STRUCTURE with admixture
 
 def mcmc_admixture(individuals, snps, K=3):
 	
@@ -283,9 +296,9 @@ def mcmc_admixture(individuals, snps, K=3):
 		# print "Run Step 1"
 		# set up nklj, a 3D matrix of counts that is indexed by k-> l-> j
 		# pseudocounts for n
-		n = np.ones((K,num_loci,NUM_ALLELES))
+		n = np.zeros((K,num_loci,NUM_ALLELES))
 
-		# m -> number of allele copies in indvidual i taht orginated in population k
+		# m -> number of allele copies in indvidual i that orginated in population k
 		m = np.zeros((number_individuals, K))
 
 		# q -> proportion of admixture
@@ -414,10 +427,10 @@ def main():
 	# run no_admixture many times
 	# for run in xrange(0,30):
 	# 	print "run number {0}".format(run)
-	# 	mcmc_no_admixture(ids,snps,K=3)
+	#mcmc_no_admixture(ids,snps,K=3)
 
 
-	mcmc_admixture(ids[:50],snps[:50,:500])
+	mcmc_admixture(ids[:50],snps[:50,:5000])
 
 
 
